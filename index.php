@@ -130,7 +130,202 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const CONFIRM_MODAL = new bootstrap.Modal($('confirm-modal'));
+    const EDIT_MODAL = new bootstrap.Modal($('edit-modal'));
+    const CD_MODAL = new bootstrap.Modal($('clear-delete-modal'));
+    let actionTarget = { id: null, action: null };
+
+    const showMsg = (msg, type) => {
+        const msgBox = $('msg-box');
+        msgBox.textContent = msg;
+        msgBox.className = `alert alert-${type} text-center rounded-3`;
+        msgBox.classList.remove('d-none');
+        setTimeout(() => msgBox.classList.add('d-none'), 3000);
+    };
+
+    const createListItem = (student, includeActions = false) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center rounded-3 shadow-sm mb-2';
+        li.innerHTML = `<div><div class="fw-bold text-dark">${student.name}</div><small class="text-muted">ID: ${student.id}</small></div>`;
+
+        if (includeActions) {
+            const btnGroup = document.createElement('div');
+            btnGroup.innerHTML = `
+                <button class="btn btn-sm btn-outline-primary rounded-pill me-2" onclick="openEditModal('${student.id}', '${student.name}')">Edit</button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="openClearDeleteModal('delete_student', { id: '${student.id}', name: '${student.name}' })">Delete</button>
+            `;
+            li.appendChild(btnGroup);
+        }
+        return li;
+    };
+
+    const makeAjaxCall = (file, data = {}) => {
+        return fetch(file, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        })
+        .then(response => response.json().catch(() => { throw new Error('Non-JSON response from server.'); }))
+        .then(result => {
+            if (!result.success) throw new Error(result.message || 'Unknown API Error');
+            return result;
+        })
+        .catch(error => {
+            console.error('AJAX Failure:', error);
+            showMsg(`Action failed: ${error.message}`, 'danger');
+            return null; 
+        });
+    };
+
+    const submitRegister = async () => {
+        const id = $('reg-id').value.trim();
+        const name = $('reg-name').value.trim();
+        if (!id || !name) return showMsg("Fill in both fields.", "danger");
+
+        const result = await makeAjaxCall('insert.php', { id, name });
+        if (result) {
+            showMsg(result.message, "success");
+            $('reg-id').value = $('reg-name').value = '';
+        }
+    };
+
+    const submitPresent = async () => {
+        const id = $('signin-id').value.trim();
+        $('signin-id').value = '';
+        if (!id) return showMsg("Please enter a Student ID.", "danger");
+
+        const lookupResult = await makeAjaxCall('present.php', { action: 'lookup', id });
+        if (!lookupResult) return;
+
+        const student = lookupResult.data;
+        const checkResult = await makeAjaxCall('present.php', { action: 'check_attendance', id });
+        if (!checkResult) return;
+
+        if (checkResult.data) {
+            showMsg(checkResult.message, "warning");
+        } else {
+            $('confirm-name').textContent = student.name;
+            $('confirm-id').textContent = `ID: ${student.id}`;
+            $('confirm-present-btn').setAttribute('data-id', student.id);
+            $('confirm-present-btn').setAttribute('data-name', student.name);
+            CONFIRM_MODAL.show();
+        }
+    };
+
+    const markStudentPresentFromModal = async () => {
+        const id = $('confirm-present-btn').getAttribute('data-id');
+        CONFIRM_MODAL.hide();
+
+        const result = await makeAjaxCall('present.php', { action: 'mark_present', id });
+        if (result) {
+            showMsg(result.message, "success");
+            if ($('view-present').classList.contains('show')) loadData('get_present');
+        }
+    };
+
+    const loadData = async (action) => {
+        let listId, emptyMsg, includeActions = false;
+
+        if (action === 'get_present') {
+            listId = 'present-list';
+            emptyMsg = 'No students are present yet today.';
+            $('clear-btn').classList.add('d-none');
+        } else if (action === 'get_absent') {
+            listId = 'absent-list';
+            emptyMsg = 'All registered students are present!';
+        } else if (action === 'get_all_students') {
+            listId = 'all-list';
+            emptyMsg = 'No students registered in the system.';
+            includeActions = true;
+        } else {
+            return;
+        }
+        
+        const list = $(listId);
+        list.innerHTML = '<li class="list-group-item text-center text-muted fst-italic">Loading...</li>';
+
+        const result = await makeAjaxCall('data.php', { action });
+        list.innerHTML = '';
+
+        if (result && result.data.length > 0) {
+            result.data.forEach(s => list.appendChild(createListItem(s, includeActions)));
+            if (action === 'get_present') $('clear-btn').classList.remove('d-none');
+        } else if (result) {
+            list.innerHTML = `<li class="list-group-item text-center text-muted fst-italic">${emptyMsg}</li>`;
+        }
+    };
+
+    const saveEditedStudent = async () => {
+        const originalId = $('edit-original-id').value;
+        const newId = $('edit-id').value.trim();
+        const newName = $('edit-name').value.trim();
+
+        if (!newId || !newName) return showModalMessage("ID and Name cannot be empty.", "danger");
+
+        const result = await makeAjaxCall('update.php', { originalId, newId, newName });
+        if (result) {
+            EDIT_MODAL.hide();
+            loadData('get_all_students');
+            showMsg(result.message, "success");
+        } else {
+             const msgBox = $('modal-msg-box');
+             msgBox.classList.remove('d-none', 'alert-success');
+             msgBox.classList.add('alert-danger');
+             msgBox.textContent = 'Error saving changes.';
+        }
+    };
+
+    const executeCDAction = async () => {
+        CD_MODAL.hide();
+        
+        const result = await makeAjaxCall('delete.php', actionTarget);
+
+        if (result) {
+            showMsg(result.message, "success");
+            if (actionTarget.action === 'clear_attendance') loadData('get_present');
+            if (actionTarget.action === 'delete_student') loadData('get_all_students');
+        }
+    };
+
+    const openEditModal = (id, name) => {
+        $('edit-original-id').value = id;
+        $('edit-id').value = id;
+        $('edit-name').value = name;
+        $('modal-msg-box').classList.add('d-none');
+        EDIT_MODAL.show();
+    };
+
+    const openClearDeleteModal = (action, data) => {
+        actionTarget = { action, data };
+        const title = $('cd-title');
+        const message = $('cd-message');
+        const confirmBtn = $('cd-action-btn');
+
+        confirmBtn.onclick = executeCDAction;
+        confirmBtn.classList.remove('btn-danger', 'btn-warning');
+
+        if (action === 'clear_attendance') {
+            title.textContent = 'Clear Attendance?';
+            message.textContent = 'Are you sure you want to clear all present students for today?';
+            confirmBtn.textContent = 'Yes, Clear';
+            confirmBtn.classList.add('btn-warning');
+        } else if (action === 'delete_student') {
+            title.textContent = `Delete ${data.name}?`;
+            message.textContent = `Permanently delete ${data.name} (${data.id})? This will remove all attendance records.`;
+            confirmBtn.textContent = 'Yes, Delete';
+            confirmBtn.classList.add('btn-danger');
+        }
+
+        CD_MODAL.show();
+    };
     
-    
+    document.querySelectorAll('.nav-link').forEach(btn => {
+        btn.addEventListener('click', () => $('msg-box').classList.add('d-none'));
+    });
+</script>        
 </body>
 </html>  
