@@ -67,6 +67,70 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-success text-white rounded-top-4 border-0">
+                <h5 class="modal-title">Confirm Attendance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <svg class="mx-auto" style="height: 48px; width: 48px; color: #198754;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="fs-5 mt-3 mb-1 text-secondary">Is this correct?</p>
+                <h3 id="confirm-name" class="fs-2 fw-bolder text-dark"></h3>
+                <p id="confirm-id" class="text-muted mb-4"></p>
+                <div class="d-flex gap-3">
+                    <button id="confirm-present-btn" onclick="markStudentPresentFromModal()" class="btn btn-success btn-lg flex-fill rounded-3">Confirm Present</button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg flex-fill rounded-3" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="edit-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white rounded-top-4 border-0">
+                <h5 class="modal-title">Edit Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modal-msg-box" class="alert d-none text-center rounded-3" role="alert"></div>
+                <input type="hidden" id="edit-original-id">
+                <div class="mb-3">
+                    <label for="edit-id" class="form-label fw-bold">Student ID</label>
+                    <input type="text" class="form-control rounded-3" placeholder="e.g., 21-1-2414" id="edit-id" required>
+                </div>
+                <div class="mb-4">
+                    <label for="edit-name" class="form-label fw-bold">Full Name</label>
+                    <input type="text" class="form-control rounded-3" id="edit-name" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button onclick="saveEditedStudent()" class="btn btn-primary btn-lg rounded-3">Save Changes</button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg rounded-3" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="clear-delete-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark rounded-top-4 border-0">
+                <h5 class="modal-title" id="cd-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="mb-4 text-secondary" id="cd-message">Are you sure?</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button id="cd-action-btn" class="btn btn-danger btn-lg rounded-3"></button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg rounded-3" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
     
 </body>
 </html>  
