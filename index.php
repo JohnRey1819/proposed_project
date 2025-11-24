@@ -130,6 +130,22 @@
         </div>
     </div>
 </div>    
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const CONFIRM_MODAL = new bootstrap.Modal($('confirm-modal'));
+    const EDIT_MODAL = new bootstrap.Modal($('edit-modal'));
+    const CD_MODAL = new bootstrap.Modal($('clear-delete-modal'));
+    let actionTarget = { id: null, action: null };
+
+    const showMsg = (msg, type) => {
+        const msgBox = $('msg-box');
+        msgBox.textContent = msg;
+        msgBox.className = `alert alert-${type} text-center rounded-3`;
+        msgBox.classList.remove('d-none');
+        setTimeout(() => msgBox.classList.add('d-none'), 3000);
+    };
     
 
   
