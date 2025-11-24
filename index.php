@@ -267,9 +267,41 @@
             if (actionTarget.action === 'delete_student') loadData('get_all_students');
         }
     };
-    
-    
+    const openEditModal = (id, name) => {
+        $('edit-original-id').value = id;
+        $('edit-id').value = id;
+        $('edit-name').value = name;
+        $('modal-msg-box').classList.add('d-none');
+        EDIT_MODAL.show();
+    };
 
-  
+    const openClearDeleteModal = (action, data) => {
+        actionTarget = { action, data };
+        const title = $('cd-title');
+        const message = $('cd-message');
+        const confirmBtn = $('cd-action-btn');
+
+        confirmBtn.onclick = executeCDAction;
+        confirmBtn.classList.remove('btn-danger', 'btn-warning');
+
+        if (action === 'clear_attendance') {
+            title.textContent = 'Clear Attendance?';
+            message.textContent = 'Are you sure you want to clear all present students for today?';
+            confirmBtn.textContent = 'Yes, Clear';
+            confirmBtn.classList.add('btn-warning');
+        } else if (action === 'delete_student') {
+            title.textContent = `Delete ${data.name}?`;
+            message.textContent = `Permanently delete ${data.name} (${data.id})? This will remove all attendance records.`;
+            confirmBtn.textContent = 'Yes, Delete';
+            confirmBtn.classList.add('btn-danger');
+        }
+
+        CD_MODAL.show();
+    };
+    
+    document.querySelectorAll('.nav-link').forEach(btn => {
+        btn.addEventListener('click', () => $('msg-box').classList.add('d-none'));
+    });
+</script>
 </body>
 </html> 
