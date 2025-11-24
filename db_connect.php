@@ -1,8 +1,8 @@
 <?php
-$host = '';
-$username = '';
-$password = '';
-$dbname = '';
+$host = 'localhost';
+$username = 'root';
+$password = 'root';
+$dbname = 'attendance_db';
 
 $conn = new mysqli($host, $username, $password, $dbname);
 
