@@ -146,6 +146,32 @@
         msgBox.classList.remove('d-none');
         setTimeout(() => msgBox.classList.add('d-none'), 3000);
     };
+    const createListItem = (student, includeActions = false) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center rounded-3 shadow-sm mb-2';
+        li.innerHTML = `<div><div class="fw-bold text-dark">${student.name}</div><small class="text-muted">ID: ${student.id}</small></div>`;
+
+        if (includeActions) {
+            const btnGroup = document.createElement('div');
+            btnGroup.innerHTML = `
+                <button class="btn btn-sm btn-outline-primary rounded-pill me-2" onclick="openEditModal('${student.id}', '${student.name}')">Edit</button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="openClearDeleteModal('delete_student', { id: '${student.id}', name: '${student.name}' })">Delete</button>
+            `;
+            li.appendChild(btnGroup);
+        }
+        return li;
+    };
+        const submitRegister = async () => {
+        const id = $('reg-id').value.trim();
+        const name = $('reg-name').value.trim();
+        if (!id || !name) return showMsg("Fill in both fields.", "danger");
+
+        const result = await makeAjaxCall('register', { id, name });
+        if (result) {
+            showMsg(result.message, "success");
+            $('reg-id').value = $('reg-name').value = '';
+        }
+    };
     
 
   
