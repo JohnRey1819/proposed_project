@@ -172,6 +172,102 @@
             $('reg-id').value = $('reg-name').value = '';
         }
     };
+        const submitPresent = async () => {
+        const id = $('signin-id').value.trim();
+        $('signin-id').value = '';
+        if (!id) return showMsg("Please enter a Student ID.", "danger");
+
+        const lookupResult = await makeAjaxCall('lookup', { id });
+        if (!lookupResult) return;
+
+        const student = lookupResult.data;
+        const checkResult = await makeAjaxCall('check_attendance', { id });
+        if (!checkResult) return;
+
+        if (checkResult.data) {
+            showMsg(checkResult.message, "warning");
+        } else {
+            $('confirm-name').textContent = student.name;
+            $('confirm-id').textContent = `ID: ${student.id}`;
+            $('confirm-present-btn').setAttribute('data-id', student.id);
+            $('confirm-present-btn').setAttribute('data-name', student.name);
+            CONFIRM_MODAL.show();
+        }
+    };
+    const markStudentPresentFromModal = async () => {
+        const id = $('confirm-present-btn').getAttribute('data-id');
+        CONFIRM_MODAL.hide();
+
+        const result = await makeAjaxCall('mark_present', { id });
+        if (result) {
+            showMsg(result.message, "success");
+            if ($('view-present').classList.contains('show')) loadData('get_present');
+        }
+    };
+
+    const loadData = async (action) => {
+        let listId, emptyMsg, includeActions = false;
+
+        if (action === 'get_present') {
+            listId = 'present-list';
+            emptyMsg = 'No students are present yet today.';
+            $('clear-btn').classList.add('d-none');
+        } else if (action === 'get_absent') {
+            listId = 'absent-list';
+            emptyMsg = 'All registered students are present!';
+        } else if (action === 'get_all_students') {
+            listId = 'all-list';
+            emptyMsg = 'No students registered in the system.';
+            includeActions = true;
+        } else {
+            return;
+        }
+        
+        const list = $(listId);
+        list.innerHTML = '<li class="list-group-item text-center text-muted fst-italic">Loading...</li>';
+
+        const result = await makeAjaxCall(action);
+        list.innerHTML = '';
+
+        if (result && result.data.length > 0) {
+            result.data.forEach(s => list.appendChild(createListItem(s, includeActions)));
+            if (action === 'get_present') $('clear-btn').classList.remove('d-none');
+        } else if (result) {
+            list.innerHTML = `<li class="list-group-item text-center text-muted fst-italic">${emptyMsg}</li>`;
+        }
+    };
+    const saveEditedStudent = async () => {
+        const originalId = $('edit-original-id').value;
+        const newId = $('edit-id').value.trim();
+        const newName = $('edit-name').value.trim();
+
+        if (!newId || !newName) return showModalMessage("ID and Name cannot be empty.", "danger");
+
+        const result = await makeAjaxCall('update_student', { originalId, newId, newName });
+        if (result) {
+            EDIT_MODAL.hide();
+            loadData('get_all_students');
+            showMsg(result.message, "success");
+        } else {
+             const msgBox = $('modal-msg-box');
+             msgBox.classList.remove('d-none', 'alert-success');
+             msgBox.classList.add('alert-danger');
+             msgBox.textContent = 'Error saving changes.';
+        }
+    };
+
+    const executeCDAction = async () => {
+        CD_MODAL.hide();
+        
+        const result = await makeAjaxCall(actionTarget.action, actionTarget.data);
+
+        if (result) {
+            showMsg(result.message, "success");
+            if (actionTarget.action === 'clear_attendance') loadData('get_present');
+            if (actionTarget.action === 'delete_student') loadData('get_all_students');
+        }
+    };
+    
     
 
   
