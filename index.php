@@ -67,6 +67,27 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="confirm-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-success text-white rounded-top-4 border-0">
+                <h5 class="modal-title">Confirm Attendance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <svg class="mx-auto" style="height: 48px; width: 48px; color: #198754;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="fs-5 mt-3 mb-1 text-secondary">Is this correct?</p>
+                <h3 id="confirm-name" class="fs-2 fw-bolder text-dark"></h3>
+                <p id="confirm-id" class="text-muted mb-4"></p>
+                <div class="d-flex gap-3">
+                    <button id="confirm-present-btn" onclick="markStudentPresentFromModal()" class="btn btn-success btn-lg flex-fill rounded-3">Confirm Present</button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg flex-fill rounded-3" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
 
   
 </body>
