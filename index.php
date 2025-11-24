@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Attendance System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .app-card { max-width: 600px; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); border-radius: 1rem; }
+        .nav-pills .nav-link { border-radius: 0.75rem; font-weight: 600; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; }
+        .tab-pane { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
     <div class="container py-4">
