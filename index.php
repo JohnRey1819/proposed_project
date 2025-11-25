@@ -1,331 +1,87 @@
+<?php
+require_once 'db_connect.php';
+
+$sql = "SELECT student_id, student_name FROM students ORDER BY student_name ASC";
+$result = mysqli_query($conn, $sql);
+
+$message = '';
+if (isset($_GET['status'])) {
+    if ($_GET['status'] == 'insert_success') {
+        $message = '<div class="alert alert-success">Student registered successfully!</div>';
+    } elseif ($_GET['status'] == 'update_success') {
+        $message = '<div class="alert alert-success">Student updated successfully!</div>';
+    } elseif ($_GET['status'] == 'delete_success') {
+        $message = '<div class="alert alert-warning">Student deleted successfully.</div>';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student_Attendance_System</title>
+    <title>Student Attendance System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<div class="container py-4">
-    <div class="card app-card mx-auto">
-        <div class="card-body p-4 p-md-5">
-            <h1 class="text-center text-dark mb-4 fs-3 fw-bold">Student Attendance Portal</h1>
-            <div id="msg-box" class="alert d-none text-center rounded-3" role="alert"></div>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h2 class="mb-4">Attendance System Dashboard</h2>
+        <?= $message ?>
 
-            <ul class="nav nav-pills justify-content-center gap-2 mb-4" id="pills-tab" role="tablist">
-                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#present" type="button" onclick="loadData('present')">Mark Present</button></li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#register" type="button">Register</button></li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#view-present" type="button" onclick="loadData('get_present')">Present Today</button></li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#view-absent" type="button" onclick="loadData('get_absent')">Absent Today</button></li>
-                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#view-all" type="button" onclick="loadData('get_all_students')">All Students</button></li>
-            </ul>
+        <div class="d-flex justify-content-between mb-4">
+            <a href="take_attendance.php" class="btn btn-success btn-lg">Take Today's Attendance</a>
+            <div>
+                <a href="view_attendance.php?view=present" class="btn btn-info me-2">Present Students</a>
+                <a href="view_attendance.php?view=absent" class="btn btn-danger me-2">Absent Students</a>
+                <a href="attendance_action.php?action=clear" class="btn btn-warning" onclick="return confirm('Are you sure you want to clear TODAY\'s attendance?');">Clear Today's Attendance</a>
+            </div>
+        </div>
 
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="present">
-                    <div class="p-4 rounded-3 border border-primary-subtle bg-primary-subtle">
-                        <form onsubmit="event.preventDefault(); submitPresent();">
-                            <div class="mb-3">
-                                <label for="signin-id" class="form-label fw-bold">Enter Student ID</label>
-                                <input type="text" class="form-control form-control-lg rounded-3" id="signin-id" placeholder="e.g., 24-1-2414" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3 shadow-sm">Mark as Present</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="register">
-                    <div class="p-4 rounded-3 border bg-light">
-                        <form onsubmit="event.preventDefault(); submitRegister();">
-                            <div class="mb-3">
-                                <label for="reg-id" class="form-label fw-bold">Student ID</label>
-                                <input type="text" class="form-control rounded-3" id="reg-id" required>
-                            </div>
-                            <div class="mb-4">
-                                <label for="reg-name" class="form-label fw-bold">Full Name</label>
-                                <input type="text" class="form-control rounded-3" id="reg-name" required>
-                            </div>
-                            <button type="submit" class="btn btn-secondary w-100 rounded-3">Register Student</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="view-present">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="text-success fw-bold mb-0">Students Present Today</h4>
-                        <button id="clear-btn" class="btn btn-sm btn-outline-danger rounded-pill d-none" onclick="openClearDeleteModal('clear_attendance', null)">Clear All</button>
-                    </div>
-                    <ul id="present-list" class="list-group"></ul>
-                </div>
-                <div class="tab-pane fade" id="view-absent">
-                    <h4 class="text-danger fw-bold mb-3">Students Absent Today</h4>
-                    <ul id="absent-list" class="list-group"></ul>
-                </div>
-                <div class="tab-pane fade" id="view-all">
-                    <h4 class="text-primary fw-bold mb-3">All Registered Students</h4>
-                    <ul id="all-list" class="list-group"></ul>
-                </div>
+        <hr>
+
+        <h3 class="mb-3">Student Management (CRUD)</h3>
+        <a href="insert.php" class="btn btn-primary mb-3">Add New Student</a>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                All Students List
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    if (mysqli_num_rows($result) > 0) {
+                        while($row = mysqli_fetch_assoc($result)) {
+                            echo "<tr>";
+                            echo "<td>" . htmlspecialchars($row['student_id']) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['student_name']) . "</td>";
+                            echo '<td>';
+                            echo '<a href="update.php?id=' . urlencode($row['student_id']) . '" class="btn btn-sm btn-info me-2">Edit</a>';
+                            echo '<form action="delete.php" method="POST" class="d-inline" onsubmit="return confirm(\'Are you sure you want to delete this student?\');">';
+                            echo '<input type="hidden" name="student_id" value="' . htmlspecialchars($row['student_id']) . '">';
+                            echo '<button type="submit" class="btn btn-sm btn-danger">Delete</button>';
+                            echo '</form>';
+                            echo '</td>';
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='3' class='text-center'>No students found.</td></tr>";
+                    }
+                    ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-<div class="modal fade" id="confirm-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header bg-success text-white rounded-top-4 border-0">
-                <h5 class="modal-title">Confirm Attendance</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center p-4">
-                <svg class="mx-auto" style="height: 48px; width: 48px; color: #198754;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <p class="fs-5 mt-3 mb-1 text-secondary">Is this correct?</p>
-                <h3 id="confirm-name" class="fs-2 fw-bolder text-dark"></h3>
-                <p id="confirm-id" class="text-muted mb-4"></p>
-                <div class="d-flex gap-3">
-                    <button id="confirm-present-btn" onclick="markStudentPresentFromModal()" class="btn btn-success btn-lg flex-fill rounded-3">Confirm Present</button>
-                    <button type="button" class="btn btn-outline-secondary btn-lg flex-fill rounded-3" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="edit-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white rounded-top-4 border-0">
-                <h5 class="modal-title">Edit Student</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div id="modal-msg-box" class="alert d-none text-center rounded-3" role="alert"></div>
-                <input type="hidden" id="edit-original-id">
-                <div class="mb-3">
-                    <label for="edit-id" class="form-label fw-bold">Student ID</label>
-                    <input type="text" class="form-control rounded-3" placeholder="e.g., 21-1-2414" id="edit-id" required>
-                </div>
-                <div class="mb-4">
-                    <label for="edit-name" class="form-label fw-bold">Full Name</label>
-                    <input type="text" class="form-control rounded-3" id="edit-name" required>
-                </div>
-                <div class="d-grid gap-2">
-                    <button onclick="saveEditedStudent()" class="btn btn-primary btn-lg rounded-3">Save Changes</button>
-                    <button type="button" class="btn btn-outline-secondary btn-lg rounded-3" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="clear-delete-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header bg-warning text-dark rounded-top-4 border-0">
-                <h5 class="modal-title" id="cd-title">Confirm Action</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4 text-center">
-                <p class="mb-4 text-secondary" id="cd-message">Are you sure?</p>
-                <div class="d-flex justify-content-center gap-3">
-                    <button id="cd-action-btn" class="btn btn-danger btn-lg rounded-3"></button>
-                    <button type="button" class="btn btn-outline-secondary btn-lg rounded-3" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    const $ = id => document.getElementById(id);
-    const CONFIRM_MODAL = new bootstrap.Modal($('confirm-modal'));
-    const EDIT_MODAL = new bootstrap.Modal($('edit-modal'));
-    const CD_MODAL = new bootstrap.Modal($('clear-delete-modal'));
-    let actionTarget = { id: null, action: null };
-
-    const showMsg = (msg, type) => {
-        const msgBox = $('msg-box');
-        msgBox.textContent = msg;
-        msgBox.className = `alert alert-${type} text-center rounded-3`;
-        msgBox.classList.remove('d-none');
-        setTimeout(() => msgBox.classList.add('d-none'), 3000);
-    };
-
-    const createListItem = (student, includeActions = false) => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-center rounded-3 shadow-sm mb-2';
-        li.innerHTML = `<div><div class="fw-bold text-dark">${student.name}</div><small class="text-muted">ID: ${student.id}</small></div>`;
-
-        if (includeActions) {
-            const btnGroup = document.createElement('div');
-            btnGroup.innerHTML = `
-                <button class="btn btn-sm btn-outline-primary rounded-pill me-2" onclick="openEditModal('${student.id}', '${student.name}')">Edit</button>
-                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="openClearDeleteModal('delete_student', { id: '${student.id}', name: '${student.name}' })">Delete</button>
-            `;
-            li.appendChild(btnGroup);
-        }
-        return li;
-    };
-
-    const makeAjaxCall = (file, data = {}) => {
-        return fetch(file, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        })
-        .then(response => response.json().catch(() => { throw new Error('Non-JSON response from server.'); }))
-        .then(result => {
-            if (!result.success) throw new Error(result.message || 'Unknown API Error');
-            return result;
-        })
-        .catch(error => {
-            console.error('AJAX Failure:', error);
-            showMsg(`Action failed: ${error.message}`, 'danger');
-            return null; 
-        });
-    };
-
-    const submitRegister = async () => {
-        const id = $('reg-id').value.trim();
-        const name = $('reg-name').value.trim();
-        if (!id || !name) return showMsg("Fill in both fields.", "danger");
-
-        const result = await makeAjaxCall('insert.php', { id, name });
-        if (result) {
-            showMsg(result.message, "success");
-            $('reg-id').value = $('reg-name').value = '';
-        }
-    };
-
-    const submitPresent = async () => {
-        const id = $('signin-id').value.trim();
-        $('signin-id').value = '';
-        if (!id) return showMsg("Please enter a Student ID.", "danger");
-
-        const lookupResult = await makeAjaxCall('present.php', { action: 'lookup', id });
-        if (!lookupResult) return;
-
-        const student = lookupResult.data;
-        const checkResult = await makeAjaxCall('present.php', { action: 'check_attendance', id });
-        if (!checkResult) return;
-
-        if (checkResult.data) {
-            showMsg(checkResult.message, "warning");
-        } else {
-            $('confirm-name').textContent = student.name;
-            $('confirm-id').textContent = `ID: ${student.id}`;
-            $('confirm-present-btn').setAttribute('data-id', student.id);
-            $('confirm-present-btn').setAttribute('data-name', student.name);
-            CONFIRM_MODAL.show();
-        }
-    };
-
-    const markStudentPresentFromModal = async () => {
-        const id = $('confirm-present-btn').getAttribute('data-id');
-        CONFIRM_MODAL.hide();
-
-        const result = await makeAjaxCall('present.php', { action: 'mark_present', id });
-        if (result) {
-            showMsg(result.message, "success");
-            if ($('view-present').classList.contains('show')) loadData('get_present');
-        }
-    };
-
-    const loadData = async (action) => {
-        let listId, emptyMsg, includeActions = false;
-
-        if (action === 'get_present') {
-            listId = 'present-list';
-            emptyMsg = 'No students are present yet today.';
-            $('clear-btn').classList.add('d-none');
-        } else if (action === 'get_absent') {
-            listId = 'absent-list';
-            emptyMsg = 'All registered students are present!';
-        } else if (action === 'get_all_students') {
-            listId = 'all-list';
-            emptyMsg = 'No students registered in the system.';
-            includeActions = true;
-        } else {
-            return;
-        }
-        
-        const list = $(listId);
-        list.innerHTML = '<li class="list-group-item text-center text-muted fst-italic">Loading...</li>';
-
-        const result = await makeAjaxCall('data.php', { action });
-        list.innerHTML = '';
-
-        if (result && result.data.length > 0) {
-            result.data.forEach(s => list.appendChild(createListItem(s, includeActions)));
-            if (action === 'get_present') $('clear-btn').classList.remove('d-none');
-        } else if (result) {
-            list.innerHTML = `<li class="list-group-item text-center text-muted fst-italic">${emptyMsg}</li>`;
-        }
-    };
-
-    const saveEditedStudent = async () => {
-        const originalId = $('edit-original-id').value;
-        const newId = $('edit-id').value.trim();
-        const newName = $('edit-name').value.trim();
-
-        if (!newId || !newName) return showModalMessage("ID and Name cannot be empty.", "danger");
-
-        const result = await makeAjaxCall('update.php', { originalId, newId, newName });
-        if (result) {
-            EDIT_MODAL.hide();
-            loadData('get_all_students');
-            showMsg(result.message, "success");
-        } else {
-             const msgBox = $('modal-msg-box');
-             msgBox.classList.remove('d-none', 'alert-success');
-             msgBox.classList.add('alert-danger');
-             msgBox.textContent = 'Error saving changes.';
-        }
-    };
-
-    const executeCDAction = async () => {
-        CD_MODAL.hide();
-        
-        const result = await makeAjaxCall('delete.php', actionTarget);
-
-        if (result) {
-            showMsg(result.message, "success");
-            if (actionTarget.action === 'clear_attendance') loadData('get_present');
-            if (actionTarget.action === 'delete_student') loadData('get_all_students');
-        }
-    };
-
-    const openEditModal = (id, name) => {
-        $('edit-original-id').value = id;
-        $('edit-id').value = id;
-        $('edit-name').value = name;
-        $('modal-msg-box').classList.add('d-none');
-        EDIT_MODAL.show();
-    };
-
-    const openClearDeleteModal = (action, data) => {
-        actionTarget = { action, data };
-        const title = $('cd-title');
-        const message = $('cd-message');
-        const confirmBtn = $('cd-action-btn');
-
-        confirmBtn.onclick = executeCDAction;
-        confirmBtn.classList.remove('btn-danger', 'btn-warning');
-
-        if (action === 'clear_attendance') {
-            title.textContent = 'Clear Attendance?';
-            message.textContent = 'Are you sure you want to clear all present students for today?';
-            confirmBtn.textContent = 'Yes, Clear';
-            confirmBtn.classList.add('btn-warning');
-        } else if (action === 'delete_student') {
-            title.textContent = `Delete ${data.name}?`;
-            message.textContent = `Permanently delete ${data.name} (${data.id})? This will remove all attendance records.`;
-            confirmBtn.textContent = 'Yes, Delete';
-            confirmBtn.classList.add('btn-danger');
-        }
-
-        CD_MODAL.show();
-    };
-    
-    document.querySelectorAll('.nav-link').forEach(btn => {
-        btn.addEventListener('click', () => $('msg-box').classList.add('d-none'));
-    });
-</script>        
 </body>
-</html>  
+</html>
+<?php
+mysqli_close($conn);
+?>
