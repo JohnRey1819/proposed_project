@@ -1,21 +1,14 @@
 <?php
-$host = 'localhost';
-$username = '';
-$password = '';
-$dbname = 'attendance_db';
+$dbhost = 'sql312.infinityfree.com';
+$dbuser = 'if0_39879664';
+$dbpass = 'dxm4nKUyU1LHRv';
+$dbname = 'if0_39879664_attendance_db';
 
-$conn = new mysqli($host, $username, $password, $dbname);
+$conn = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
 
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => "Database Connection failed: " . $conn->connect_error]);
-    exit();
+if($conn === false){
+    die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 
-$conn->set_charset("utf8");
-
-function close_db_connection($conn) {
-    $conn->close();
-}
-
+mysqli_set_charset($conn, "utf8");
 ?>
