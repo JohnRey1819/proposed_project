@@ -1,7 +1,7 @@
 <?php
 $host = 'localhost';
 $username = 'root';
-$password = 'root';
+$password = '';
 $dbname = 'attendance_db';
 
 $conn = new mysqli($host, $username, $password, $dbname);
