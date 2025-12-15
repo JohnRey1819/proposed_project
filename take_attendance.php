@@ -2,6 +2,7 @@
 require_once 'db_connect.php';
 
 $today = date("y-m-d");
+$date = date("d-m-y");
 
 $sql = "
     SELECT s.student_id, s.student_name, 
@@ -33,7 +34,7 @@ if (isset($_GET['status'])) {
 </head>
 <body class="bg-light">
     <div class="container mt-5">
-        <h2 class="mb-4">Take Attendance for <?= $today ?></h2>
+        <h2 class="mb-4">Take Attendance for <?= $date ?></h2>
         <?= $message ?>
         
         <a href="index.php" class="btn btn-secondary mb-3">Back to Dashboard</a>
