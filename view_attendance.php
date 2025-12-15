@@ -4,6 +4,7 @@ require_once 'db_connect.php';
 
 $view = isset($_GET['view']) && in_array($_GET['view'], ['present', 'absent']) ? $_GET['view'] : 'present';
 $today = date("y-m-d");
+$date = date("d-m-y");
 
 if ($view == 'present') {
     $sql = "
@@ -12,7 +13,7 @@ if ($view == 'present') {
         INNER JOIN attendance a ON s.student_id = a.student_id AND a.attendance_date = '$today'
         ORDER BY s.student_name ASC
     ";
-    $title = "Present Students Today ({$today})";
+    $title = "Present Students Today ({$date})";
     $alert_class = "alert-success";
 } else { 
     $sql = "
@@ -22,7 +23,7 @@ if ($view == 'present') {
         WHERE a.student_id IS NULL
         ORDER BY s.student_name ASC
     ";
-    $title = "Absent Students Today ({$today})";
+    $title = "Absent Students Today ({$date})";
     $alert_class = "alert-danger";
 }
 
